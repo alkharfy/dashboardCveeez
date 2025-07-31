@@ -3,7 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase"
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = await createSupabaseServerClient()
 
     // Check authentication
     const {
@@ -17,19 +17,23 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData()
     const file = formData.get("file") as File
-    const taskId = formData.get("taskId") as string
 
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 })
     }
 
+    // Validate file size (10MB limit)
+    const maxSize = 10 * 1024 * 1024
+    if (file.size > maxSize) {
+      return NextResponse.json({ error: "File too large" }, { status: 400 })
+    }
+
     // Generate unique filename
     const fileExt = file.name.split(".").pop()
-    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
-    const filePath = taskId ? `tasks/${taskId}/${fileName}` : `temp/${session.user.id}/${fileName}`
+    const fileName = `${session.user.id}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
 
     // Upload to Supabase Storage
-    const { data, error } = await supabase.storage.from("attachments").upload(filePath, file, {
+    const { data, error } = await supabase.storage.from("attachments").upload(fileName, file, {
       cacheControl: "3600",
       upsert: false,
     })
@@ -42,15 +46,14 @@ export async function POST(request: NextRequest) {
     // Get public URL
     const {
       data: { publicUrl },
-    } = supabase.storage.from("attachments").getPublicUrl(filePath)
+    } = supabase.storage.from("attachments").getPublicUrl(data.path)
 
     return NextResponse.json({
-      id: fileName,
+      url: publicUrl,
+      path: data.path,
       name: file.name,
       size: file.size,
       type: file.type,
-      url: publicUrl,
-      path: filePath,
     })
   } catch (error) {
     console.error("API error:", error)
@@ -60,7 +63,7 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = await createSupabaseServerClient()
 
     // Check authentication
     const {
@@ -77,6 +80,11 @@ export async function DELETE(request: NextRequest) {
 
     if (!filePath) {
       return NextResponse.json({ error: "No file path provided" }, { status: 400 })
+    }
+
+    // Verify the file belongs to the user
+    if (!filePath.startsWith(session.user.id + "/")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
     }
 
     // Delete from Supabase Storage

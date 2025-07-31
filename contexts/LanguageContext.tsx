@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+
 import { createContext, useContext, useState, useEffect } from "react"
 
 type Language = "en" | "ar"
@@ -20,145 +21,88 @@ interface Translations {
   loginDescription: string
   signIn: string
   signUp: string
+  magicLink: string
   email: string
   password: string
-  name: string
   emailPlaceholder: string
   passwordPlaceholder: string
-  namePlaceholder: string
   sendMagicLink: string
-  or: string
-  loginSuccess: string
-  loginError: string
-  signupSuccess: string
-  signupError: string
-  magicLinkSent: string
-  magicLinkError: string
   accessDenied: string
-  unauthorizedMessage: string
+  accessDeniedDescription: string
   backToDashboard: string
 
   // Dashboard
   welcomeBack: string
   totalTasks: string
-  pendingTasks: string
   completedTasks: string
-  myTasks: string
-  recentActivity: string
-  quickStats: string
+  pendingTasks: string
+  totalAccounts: string
+  recentTasks: string
   taskDistribution: string
-  monthlyProgress: string
+  accountsOverview: string
 
   // Tasks
   newTask: string
   editTask: string
-  taskDetails: string
-  clientName: string
-  birthdate: string
-  contactInfo: string
-  address: string
-  jobTitle: string
-  education: string
-  experience: string
-  skills: string
-  services: string
-  designerNotes: string
-  reviewerNotes: string
-  paymentStatus: string
+  taskTitle: string
+  taskDescription: string
   status: string
   priority: string
-  date: string
+  assignedTo: string
   dueDate: string
-  assignedDesigner: string
-  assignedReviewer: string
   attachments: string
+  createTask: string
+  updateTask: string
+  deleteTask: string
 
-  // Task Status
+  // Status
   pending: string
   inProgress: string
   completed: string
-  cancelled: string
 
   // Priority
   low: string
   medium: string
   high: string
-  urgent: string
-
-  // Payment Status
-  unpaid: string
-  partiallyPaid: string
-  paid: string
-
-  // Actions
-  save: string
-  cancel: string
-  edit: string
-  delete: string
-  view: string
-  assign: string
-  submit: string
-  update: string
-  create: string
-  search: string
-  filter: string
-  export: string
-  import: string
 
   // File Upload
   dragDropFiles: string
-  dropFiles: string
-  supportedFormats: string
-  maxFileSize: string
+  dropFilesHere: string
+  orClickToSelect: string
+  selectFiles: string
   maxFiles: string
+  maxSize: string
   uploading: string
   uploadedFiles: string
-  tooManyFiles: string
-  uploadError: string
+  image: string
 
   // Common
+  save: string
+  cancel: string
+  delete: string
+  edit: string
+  view: string
+  search: string
+  filter: string
+  actions: string
   loading: string
-  error: string
-  success: string
-  warning: string
-  info: string
-  yes: string
-  no: string
-  close: string
-  open: string
+  noData: string
 
-  // Profile
-  personalInfo: string
-  changePassword: string
-  preferences: string
-  language: string
-  theme: string
+  // Theme
   light: string
   dark: string
   system: string
 
-  // Accounts
-  serviceName: string
-  username: string
-  loginUrl: string
-  notes: string
-  addAccount: string
-  editAccount: string
-
-  // Ratings
-  rating: string
-  feedback: string
-  designerRating: string
-  reviewerRating: string
-  designerFeedback: string
-  reviewerFeedback: string
+  // Language
+  english: string
+  arabic: string
 }
 
 const translations: Record<Language, Translations> = {
   en: {
     // Navigation
     dashboard: "Dashboard",
-    tasks: "Tasks",
+    tasks: "My Tasks",
     allTasks: "All Tasks",
     accounts: "Accounts",
     profile: "Profile",
@@ -170,143 +114,86 @@ const translations: Record<Language, Translations> = {
     loginDescription: "Sign in to your account to continue",
     signIn: "Sign In",
     signUp: "Sign Up",
+    magicLink: "Magic Link",
     email: "Email",
     password: "Password",
-    name: "Name",
     emailPlaceholder: "Enter your email",
     passwordPlaceholder: "Enter your password",
-    namePlaceholder: "Enter your name",
     sendMagicLink: "Send Magic Link",
-    or: "Or",
-    loginSuccess: "Login successful",
-    loginError: "Login failed",
-    signupSuccess: "Account created successfully. Please check your email.",
-    signupError: "Signup failed",
-    magicLinkSent: "Magic link sent to your email",
-    magicLinkError: "Failed to send magic link",
     accessDenied: "Access Denied",
-    unauthorizedMessage: "You do not have permission to access this page.",
+    accessDeniedDescription: "You do not have permission to access this page.",
     backToDashboard: "Back to Dashboard",
 
     // Dashboard
     welcomeBack: "Welcome back",
     totalTasks: "Total Tasks",
-    pendingTasks: "Pending Tasks",
     completedTasks: "Completed Tasks",
-    myTasks: "My Tasks",
-    recentActivity: "Recent Activity",
-    quickStats: "Quick Stats",
+    pendingTasks: "Pending Tasks",
+    totalAccounts: "Total Accounts",
+    recentTasks: "Recent Tasks",
     taskDistribution: "Task Distribution",
-    monthlyProgress: "Monthly Progress",
+    accountsOverview: "Accounts Overview",
 
     // Tasks
     newTask: "New Task",
     editTask: "Edit Task",
-    taskDetails: "Task Details",
-    clientName: "Client Name",
-    birthdate: "Birthdate",
-    contactInfo: "Contact Info",
-    address: "Address",
-    jobTitle: "Job Title",
-    education: "Education",
-    experience: "Experience",
-    skills: "Skills",
-    services: "Services",
-    designerNotes: "Designer Notes",
-    reviewerNotes: "Reviewer Notes",
-    paymentStatus: "Payment Status",
+    taskTitle: "Task Title",
+    taskDescription: "Task Description",
     status: "Status",
     priority: "Priority",
-    date: "Date",
+    assignedTo: "Assigned To",
     dueDate: "Due Date",
-    assignedDesigner: "Assigned Designer",
-    assignedReviewer: "Assigned Reviewer",
     attachments: "Attachments",
+    createTask: "Create Task",
+    updateTask: "Update Task",
+    deleteTask: "Delete Task",
 
-    // Task Status
+    // Status
     pending: "Pending",
     inProgress: "In Progress",
     completed: "Completed",
-    cancelled: "Cancelled",
 
     // Priority
     low: "Low",
     medium: "Medium",
     high: "High",
-    urgent: "Urgent",
-
-    // Payment Status
-    unpaid: "Unpaid",
-    partiallyPaid: "Partially Paid",
-    paid: "Paid",
-
-    // Actions
-    save: "Save",
-    cancel: "Cancel",
-    edit: "Edit",
-    delete: "Delete",
-    view: "View",
-    assign: "Assign",
-    submit: "Submit",
-    update: "Update",
-    create: "Create",
-    search: "Search",
-    filter: "Filter",
-    export: "Export",
-    import: "Import",
 
     // File Upload
-    dragDropFiles: "Drag and drop files here, or click to select",
-    dropFiles: "Drop files here",
-    supportedFormats: "Supported formats",
-    maxFileSize: "Max file size",
+    dragDropFiles: "Drag & drop files here",
+    dropFilesHere: "Drop files here",
+    orClickToSelect: "or click to select files",
+    selectFiles: "Select Files",
     maxFiles: "Max files",
+    maxSize: "Max size",
     uploading: "Uploading",
     uploadedFiles: "Uploaded Files",
-    tooManyFiles: "Too many files. Maximum {max} files allowed.",
-    uploadError: "Upload failed",
+    image: "Image",
 
     // Common
+    save: "Save",
+    cancel: "Cancel",
+    delete: "Delete",
+    edit: "Edit",
+    view: "View",
+    search: "Search",
+    filter: "Filter",
+    actions: "Actions",
     loading: "Loading...",
-    error: "Error",
-    success: "Success",
-    warning: "Warning",
-    info: "Info",
-    yes: "Yes",
-    no: "No",
-    close: "Close",
-    open: "Open",
+    noData: "No data available",
 
-    // Profile
-    personalInfo: "Personal Information",
-    changePassword: "Change Password",
-    preferences: "Preferences",
-    language: "Language",
-    theme: "Theme",
+    // Theme
     light: "Light",
     dark: "Dark",
     system: "System",
 
-    // Accounts
-    serviceName: "Service Name",
-    username: "Username",
-    loginUrl: "Login URL",
-    notes: "Notes",
-    addAccount: "Add Account",
-    editAccount: "Edit Account",
-
-    // Ratings
-    rating: "Rating",
-    feedback: "Feedback",
-    designerRating: "Designer Rating",
-    reviewerRating: "Reviewer Rating",
-    designerFeedback: "Designer Feedback",
-    reviewerFeedback: "Reviewer Feedback",
+    // Language
+    english: "English",
+    arabic: "العربية",
   },
   ar: {
     // Navigation
     dashboard: "لوحة التحكم",
-    tasks: "المهام",
+    tasks: "مهامي",
     allTasks: "جميع المهام",
     accounts: "الحسابات",
     profile: "الملف الشخصي",
@@ -318,138 +205,81 @@ const translations: Record<Language, Translations> = {
     loginDescription: "سجل دخولك للمتابعة",
     signIn: "تسجيل الدخول",
     signUp: "إنشاء حساب",
+    magicLink: "رابط سحري",
     email: "البريد الإلكتروني",
     password: "كلمة المرور",
-    name: "الاسم",
     emailPlaceholder: "أدخل بريدك الإلكتروني",
     passwordPlaceholder: "أدخل كلمة المرور",
-    namePlaceholder: "أدخل اسمك",
     sendMagicLink: "إرسال رابط سحري",
-    or: "أو",
-    loginSuccess: "تم تسجيل الدخول بنجاح",
-    loginError: "فشل في تسجيل الدخول",
-    signupSuccess: "تم إنشاء الحساب بنجاح. يرجى التحقق من بريدك الإلكتروني.",
-    signupError: "فشل في إنشاء الحساب",
-    magicLinkSent: "تم إرسال الرابط السحري إلى بريدك الإلكتروني",
-    magicLinkError: "فشل في إرسال الرابط السحري",
     accessDenied: "تم رفض الوصول",
-    unauthorizedMessage: "ليس لديك صلاحية للوصول إلى هذه الصفحة.",
-    backToDashboard: "العودة إلى لوحة التحكم",
+    accessDeniedDescription: "ليس لديك صلاحية للوصول إلى هذه الصفحة.",
+    backToDashboard: "العودة للوحة التحكم",
 
     // Dashboard
     welcomeBack: "مرحباً بعودتك",
     totalTasks: "إجمالي المهام",
-    pendingTasks: "المهام المعلقة",
     completedTasks: "المهام المكتملة",
-    myTasks: "مهامي",
-    recentActivity: "النشاط الأخير",
-    quickStats: "إحصائيات سريعة",
+    pendingTasks: "المهام المعلقة",
+    totalAccounts: "إجمالي الحسابات",
+    recentTasks: "المهام الحديثة",
     taskDistribution: "توزيع المهام",
-    monthlyProgress: "التقدم الشهري",
+    accountsOverview: "نظرة عامة على الحسابات",
 
     // Tasks
     newTask: "مهمة جديدة",
     editTask: "تعديل المهمة",
-    taskDetails: "تفاصيل المهمة",
-    clientName: "اسم العميل",
-    birthdate: "تاريخ الميلاد",
-    contactInfo: "معلومات الاتصال",
-    address: "العنوان",
-    jobTitle: "المسمى الوظيفي",
-    education: "التعليم",
-    experience: "الخبرة",
-    skills: "المهارات",
-    services: "الخدمات",
-    designerNotes: "ملاحظات المصمم",
-    reviewerNotes: "ملاحظات المراجع",
-    paymentStatus: "حالة الدفع",
+    taskTitle: "عنوان المهمة",
+    taskDescription: "وصف المهمة",
     status: "الحالة",
     priority: "الأولوية",
-    date: "التاريخ",
+    assignedTo: "مُسند إلى",
     dueDate: "تاريخ الاستحقاق",
-    assignedDesigner: "المصمم المكلف",
-    assignedReviewer: "المراجع المكلف",
     attachments: "المرفقات",
+    createTask: "إنشاء مهمة",
+    updateTask: "تحديث المهمة",
+    deleteTask: "حذف المهمة",
 
-    // Task Status
+    // Status
     pending: "معلق",
     inProgress: "قيد التنفيذ",
     completed: "مكتمل",
-    cancelled: "ملغي",
 
     // Priority
     low: "منخفض",
     medium: "متوسط",
     high: "عالي",
-    urgent: "عاجل",
-
-    // Payment Status
-    unpaid: "غير مدفوع",
-    partiallyPaid: "مدفوع جزئياً",
-    paid: "مدفوع",
-
-    // Actions
-    save: "حفظ",
-    cancel: "إلغاء",
-    edit: "تعديل",
-    delete: "حذف",
-    view: "عرض",
-    assign: "تكليف",
-    submit: "إرسال",
-    update: "تحديث",
-    create: "إنشاء",
-    search: "بحث",
-    filter: "تصفية",
-    export: "تصدير",
-    import: "استيراد",
 
     // File Upload
-    dragDropFiles: "اسحب وأفلت الملفات هنا، أو انقر للاختيار",
-    dropFiles: "أفلت الملفات هنا",
-    supportedFormats: "التنسيقات المدعومة",
-    maxFileSize: "الحد الأقصى لحجم الملف",
+    dragDropFiles: "اسحب وأفلت الملفات هنا",
+    dropFilesHere: "أفلت الملفات هنا",
+    orClickToSelect: "أو انقر لاختيار الملفات",
+    selectFiles: "اختر الملفات",
     maxFiles: "الحد الأقصى للملفات",
+    maxSize: "الحد الأقصى للحجم",
     uploading: "جاري الرفع",
     uploadedFiles: "الملفات المرفوعة",
-    tooManyFiles: "ملفات كثيرة جداً. الحد الأقصى {max} ملفات.",
-    uploadError: "فشل في الرفع",
+    image: "صورة",
 
     // Common
+    save: "حفظ",
+    cancel: "إلغاء",
+    delete: "حذف",
+    edit: "تعديل",
+    view: "عرض",
+    search: "بحث",
+    filter: "تصفية",
+    actions: "الإجراءات",
     loading: "جاري التحميل...",
-    error: "خطأ",
-    success: "نجح",
-    warning: "تحذير",
-    info: "معلومات",
-    yes: "نعم",
-    no: "لا",
-    close: "إغلاق",
-    open: "فتح",
+    noData: "لا توجد بيانات متاحة",
 
-    // Profile
-    personalInfo: "المعلومات الشخصية",
-    changePassword: "تغيير كلمة المرور",
-    preferences: "التفضيلات",
-    language: "اللغة",
-    theme: "المظهر",
+    // Theme
     light: "فاتح",
     dark: "داكن",
     system: "النظام",
 
-    // Accounts
-    serviceName: "اسم الخدمة",
-    username: "اسم المستخدم",
-    loginUrl: "رابط تسجيل الدخول",
-    notes: "ملاحظات",
-    addAccount: "إضافة حساب",
-    editAccount: "تعديل الحساب",
-
-    // Ratings
-    rating: "التقييم",
-    feedback: "التعليقات",
-    designerRating: "تقييم المصمم",
-    reviewerRating: "تقييم المراجع",
-    designerFeedback: "تعليقات المصمم",
-    reviewerFeedback: "تعليقات المراجع",
+    // Language
+    english: "English",
+    arabic: "العربية",
   },
 }
 
@@ -472,16 +302,15 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const handleSetLanguage = (lang: Language) => {
-    setLanguage(lang)
-    localStorage.setItem("language", lang)
-    document.documentElement.dir = lang === "ar" ? "rtl" : "ltr"
-    document.documentElement.lang = lang
-  }
+  useEffect(() => {
+    localStorage.setItem("language", language)
+    document.documentElement.lang = language
+    document.documentElement.dir = language === "ar" ? "rtl" : "ltr"
+  }, [language])
 
   const value = {
     language,
-    setLanguage: handleSetLanguage,
+    setLanguage,
     t: translations[language],
     isRTL: language === "ar",
   }

@@ -6,28 +6,42 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error("Missing Supabase environment variables")
+if (!supabaseUrl) {
+  throw new Error("Missing env.NEXT_PUBLIC_SUPABASE_URL")
 }
 
-// Client-side Supabase client
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+if (!supabaseAnonKey) {
+  throw new Error("Missing env.NEXT_PUBLIC_SUPABASE_ANON_KEY")
+}
 
-// Client component client
-export const createSupabaseClient = () => createClientComponentClient()
+// Client for use in client components
+export const createSupabaseClient = () => {
+  return createClientComponentClient()
+}
 
-// Server component client
-export const createSupabaseServerClient = () => createServerComponentClient({ cookies })
+// Client for use in server components
+export const createSupabaseServerClient = async () => {
+  const cookieStore = await cookies()
+  return createServerComponentClient({ cookies: () => cookieStore })
+}
 
 // Admin client for server-side operations (only if service key is available)
-export const supabaseAdmin = supabaseServiceKey
-  ? createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    })
-  : null
+export const createSupabaseAdminClient = () => {
+  if (!supabaseServiceKey) {
+    console.warn("SUPABASE_SERVICE_ROLE_KEY not found. Admin operations will not be available.")
+    return null
+  }
+
+  return createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  })
+}
+
+// Default client for general use
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // Database types
 export interface Database {
@@ -36,174 +50,115 @@ export interface Database {
       users: {
         Row: {
           id: string
-          name: string | null
           email: string
-          role: "admin" | "designer" | "reviewer" | "manager"
-          status: string
-          workplace: string | null
+          full_name: string | null
           avatar_url: string | null
-          phone: string | null
-          department: string | null
+          role: "admin" | "user"
           created_at: string
           updated_at: string
         }
         Insert: {
           id: string
-          name?: string | null
           email: string
-          role?: "admin" | "designer" | "reviewer" | "manager"
-          status?: string
-          workplace?: string | null
+          full_name?: string | null
           avatar_url?: string | null
-          phone?: string | null
-          department?: string | null
+          role?: "admin" | "user"
+          created_at?: string
+          updated_at?: string
         }
         Update: {
           id?: string
-          name?: string | null
           email?: string
-          role?: "admin" | "designer" | "reviewer" | "manager"
-          status?: string
-          workplace?: string | null
+          full_name?: string | null
           avatar_url?: string | null
-          phone?: string | null
-          department?: string | null
+          role?: "admin" | "user"
+          created_at?: string
+          updated_at?: string
         }
       }
       tasks: {
         Row: {
           id: string
-          client_name: string
-          birthdate: string | null
-          contact_info: string | null
-          address: string | null
-          job_title: string | null
-          education: string | null
-          experience: number | null
-          skills: string | null
-          services: string[]
-          service1: string | null
-          service2: string | null
-          service3: string | null
-          service4: string | null
-          service5: string | null
-          service6: string | null
-          designer_notes: string | null
-          reviewer_notes: string | null
-          payment_status: string
-          down_payment: number | null
-          remaining_amount: number | null
-          transfer_number: string | null
-          payment_method: string | null
-          status: string
-          priority: string | null
-          date: string
+          title: string
+          description: string | null
+          status: "pending" | "in_progress" | "completed"
+          priority: "low" | "medium" | "high"
+          assigned_to: string | null
+          created_by: string
           due_date: string | null
-          designer_rating: number | null
-          reviewer_rating: number | null
-          designer_feedback: string | null
-          reviewer_feedback: string | null
-          assigned_designer: string | null
-          assigned_reviewer: string | null
-          attachments: any[] | null
+          attachments: string[] | null
           created_at: string
           updated_at: string
         }
         Insert: {
-          client_name: string
-          birthdate?: string | null
-          contact_info?: string | null
-          address?: string | null
-          job_title?: string | null
-          education?: string | null
-          experience?: number | null
-          skills?: string | null
-          services?: string[]
-          service1?: string | null
-          service2?: string | null
-          service3?: string | null
-          service4?: string | null
-          service5?: string | null
-          service6?: string | null
-          designer_notes?: string | null
-          reviewer_notes?: string | null
-          payment_status?: string
-          down_payment?: number | null
-          remaining_amount?: number | null
-          transfer_number?: string | null
-          payment_method?: string | null
-          status?: string
-          priority?: string | null
-          date?: string
+          id?: string
+          title: string
+          description?: string | null
+          status?: "pending" | "in_progress" | "completed"
+          priority?: "low" | "medium" | "high"
+          assigned_to?: string | null
+          created_by: string
           due_date?: string | null
-          designer_rating?: number | null
-          reviewer_rating?: number | null
-          designer_feedback?: string | null
-          reviewer_feedback?: string | null
-          assigned_designer?: string | null
-          assigned_reviewer?: string | null
-          attachments?: any[] | null
+          attachments?: string[] | null
+          created_at?: string
+          updated_at?: string
         }
         Update: {
-          client_name?: string
-          birthdate?: string | null
-          contact_info?: string | null
-          address?: string | null
-          job_title?: string | null
-          education?: string | null
-          experience?: number | null
-          skills?: string | null
-          services?: string[]
-          service1?: string | null
-          service2?: string | null
-          service3?: string | null
-          service4?: string | null
-          service5?: string | null
-          service6?: string | null
-          designer_notes?: string | null
-          reviewer_notes?: string | null
-          payment_status?: string
-          down_payment?: number | null
-          remaining_amount?: number | null
-          transfer_number?: string | null
-          payment_method?: string | null
-          status?: string
-          priority?: string | null
-          date?: string
+          id?: string
+          title?: string
+          description?: string | null
+          status?: "pending" | "in_progress" | "completed"
+          priority?: "low" | "medium" | "high"
+          assigned_to?: string | null
+          created_by?: string
           due_date?: string | null
-          designer_rating?: number | null
-          reviewer_rating?: number | null
-          designer_feedback?: string | null
-          reviewer_feedback?: string | null
-          assigned_designer?: string | null
-          assigned_reviewer?: string | null
-          attachments?: any[] | null
+          attachments?: string[] | null
+          created_at?: string
+          updated_at?: string
         }
       }
       accounts: {
         Row: {
           id: string
-          service_name: string
-          username: string
-          password: string
-          notes: string | null
-          login_url: string | null
+          name: string
+          type: string
+          industry: string | null
+          contact_person: string | null
+          email: string | null
+          phone: string | null
+          address: string | null
+          status: "active" | "inactive"
+          created_by: string
           created_at: string
           updated_at: string
         }
         Insert: {
-          service_name: string
-          username: string
-          password: string
-          notes?: string | null
-          login_url?: string | null
+          id?: string
+          name: string
+          type: string
+          industry?: string | null
+          contact_person?: string | null
+          email?: string | null
+          phone?: string | null
+          address?: string | null
+          status?: "active" | "inactive"
+          created_by: string
+          created_at?: string
+          updated_at?: string
         }
         Update: {
-          service_name?: string
-          username?: string
-          password?: string
-          notes?: string | null
-          login_url?: string | null
+          id?: string
+          name?: string
+          type?: string
+          industry?: string | null
+          contact_person?: string | null
+          email?: string | null
+          phone?: string | null
+          address?: string | null
+          status?: "active" | "inactive"
+          created_by?: string
+          created_at?: string
+          updated_at?: string
         }
       }
     }

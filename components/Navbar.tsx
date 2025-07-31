@@ -2,10 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { useUser } from "@/contexts/UserContext"
-import { useLanguage } from "@/contexts/LanguageContext"
-import { useTheme } from "next-themes"
+import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -17,26 +14,31 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { LayoutDashboard, CheckSquare, List, Shield, User, LogOut, Menu, Sun, Moon, Monitor, Globe } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Menu, Home, CheckSquare, Users, User, LogOut, Sun, Moon, Monitor, Globe, Settings } from "lucide-react"
+import { useUser } from "@/contexts/UserContext"
+import { useLanguage } from "@/contexts/LanguageContext"
+import { useTheme } from "next-themes"
 
 const navigation = [
-  { name: "dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "dashboard", href: "/dashboard", icon: Home },
   { name: "tasks", href: "/tasks", icon: CheckSquare },
-  { name: "allTasks", href: "/all-tasks", icon: List, adminOnly: true },
-  { name: "accounts", href: "/accounts", icon: Shield, adminOnly: true },
+  { name: "allTasks", href: "/all-tasks", icon: CheckSquare, adminOnly: true },
+  { name: "accounts", href: "/accounts", icon: Users, adminOnly: true },
+  { name: "profile", href: "/profile", icon: User },
 ]
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
   const { user, profile, signOut } = useUser()
   const { language, setLanguage, t, isRTL } = useLanguage()
   const { theme, setTheme } = useTheme()
 
   const handleSignOut = async () => {
     await signOut()
+    router.push("/login")
   }
 
   const filteredNavigation = navigation.filter((item) => !item.adminOnly || profile?.role === "admin")
@@ -51,18 +53,15 @@ export default function Navbar() {
           <Link
             key={item.name}
             href={item.href}
-            className={cn(
-              mobile
-                ? "flex items-center space-x-3 rtl:space-x-reverse rounded-md px-3 py-2 text-sm font-medium"
-                : "flex items-center space-x-2 rtl:space-x-reverse rounded-md px-3 py-2 text-sm font-medium transition-colors",
+            className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
               isActive
                 ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-            )}
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            } ${mobile ? "w-full" : ""}`}
             onClick={() => mobile && setMobileMenuOpen(false)}
           >
-            <Icon className="h-4 w-4" />
-            <span>{t[item.name as keyof typeof t]}</span>
+            <Icon className={`h-4 w-4 ${isRTL ? "ml-2" : "mr-2"}`} />
+            {t[item.name as keyof typeof t]}
           </Link>
         )
       })}
@@ -74,48 +73,49 @@ export default function Navbar() {
   }
 
   return (
-    <nav
-      className={`border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 ${isRTL ? "rtl" : "ltr"}`}
-    >
+    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 justify-between">
           <div className="flex items-center">
-            <Link href="/dashboard" className="flex items-center space-x-2 rtl:space-x-reverse">
-              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+            <Link href="/dashboard" className="flex items-center space-x-2">
+              <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
                 <span className="text-primary-foreground font-bold text-sm">CV</span>
               </div>
-              <span className="font-bold text-xl">CV Manager</span>
+              <span className="font-bold text-xl">Management</span>
             </Link>
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex md:items-center md:space-x-4 rtl:space-x-reverse">
+          <div className="hidden md:flex md:items-center md:space-x-4">
             <NavItems />
           </div>
 
-          {/* Desktop User Menu */}
-          <div className="hidden md:flex md:items-center md:space-x-4 rtl:space-x-reverse">
+          <div className="flex items-center space-x-4">
             {/* Theme Toggle */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm">
-                  <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                  <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                  <span className="sr-only">Toggle theme</span>
+                  {theme === "light" ? (
+                    <Sun className="h-4 w-4" />
+                  ) : theme === "dark" ? (
+                    <Moon className="h-4 w-4" />
+                  ) : (
+                    <Monitor className="h-4 w-4" />
+                  )}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => setTheme("light")}>
-                  <Sun className="mr-2 h-4 w-4" />
-                  <span>{t.light}</span>
+                  <Sun className={`h-4 w-4 ${isRTL ? "ml-2" : "mr-2"}`} />
+                  {t.light}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setTheme("dark")}>
-                  <Moon className="mr-2 h-4 w-4" />
-                  <span>{t.dark}</span>
+                  <Moon className={`h-4 w-4 ${isRTL ? "ml-2" : "mr-2"}`} />
+                  {t.dark}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setTheme("system")}>
-                  <Monitor className="mr-2 h-4 w-4" />
-                  <span>{t.system}</span>
+                  <Monitor className={`h-4 w-4 ${isRTL ? "ml-2" : "mr-2"}`} />
+                  {t.system}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -125,16 +125,11 @@ export default function Navbar() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm">
                   <Globe className="h-4 w-4" />
-                  <span className="ml-2">{language.toUpperCase()}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setLanguage("en")}>
-                  <span>English</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLanguage("ar")}>
-                  <span>العربية</span>
-                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage("en")}>{t.english}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage("ar")}>{t.arabic}</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -143,91 +138,71 @@ export default function Navbar() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={profile?.avatar_url || ""} alt={profile?.name || ""} />
-                    <AvatarFallback>
-                      {profile?.name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase()}
-                    </AvatarFallback>
+                    <AvatarImage src={profile?.avatar_url || ""} alt={profile?.full_name || ""} />
+                    <AvatarFallback>{profile?.full_name?.charAt(0) || profile?.email?.charAt(0) || "U"}</AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{profile?.name || "User"}</p>
-                    <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-                    <Badge variant="secondary" className="w-fit">
-                      {profile?.role || "user"}
-                    </Badge>
+                    <p className="text-sm font-medium leading-none">{profile?.full_name || "User"}</p>
+                    <p className="text-xs leading-none text-muted-foreground">{profile?.email}</p>
+                    {profile?.role === "admin" && (
+                      <Badge variant="secondary" className="w-fit">
+                        Admin
+                      </Badge>
+                    )}
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link href="/profile">
-                    <User className="mr-2 h-4 w-4" />
-                    <span>{t.profile}</span>
+                    <User className={`h-4 w-4 ${isRTL ? "ml-2" : "mr-2"}`} />
+                    {t.profile}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/settings">
+                    <Settings className={`h-4 w-4 ${isRTL ? "ml-2" : "mr-2"}`} />
+                    {t.settings}
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>{t.logout}</span>
+                  <LogOut className={`h-4 w-4 ${isRTL ? "ml-2" : "mr-2"}`} />
+                  {t.logout}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          </div>
 
-          {/* Mobile menu button */}
-          <div className="flex items-center md:hidden">
+            {/* Mobile menu button */}
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="sm">
-                  <Menu className="h-6 w-6" />
-                  <span className="sr-only">Open main menu</span>
+                <Button variant="ghost" className="md:hidden" size="sm">
+                  <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
               <SheetContent side={isRTL ? "left" : "right"} className="w-[300px] sm:w-[400px]">
-                <SheetHeader>
-                  <SheetTitle>Menu</SheetTitle>
-                  <SheetDescription>Navigate through the application</SheetDescription>
-                </SheetHeader>
-                <div className="mt-6 space-y-4">
-                  <div className="space-y-2">
-                    <NavItems mobile />
-                  </div>
-
-                  <div className="border-t pt-4">
-                    <div className="flex items-center space-x-3 rtl:space-x-reverse mb-4">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={profile?.avatar_url || ""} alt={profile?.name || ""} />
-                        <AvatarFallback>
-                          {profile?.name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="text-sm font-medium">{profile?.name || "User"}</p>
-                        <p className="text-xs text-muted-foreground">{user.email}</p>
+                <div className="flex flex-col space-y-4 mt-4">
+                  <div className="flex items-center space-x-2 pb-4 border-b">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={profile?.avatar_url || ""} alt={profile?.full_name || ""} />
+                      <AvatarFallback>
+                        {profile?.full_name?.charAt(0) || profile?.email?.charAt(0) || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col">
+                      <p className="text-sm font-medium">{profile?.full_name || "User"}</p>
+                      <p className="text-xs text-muted-foreground">{profile?.email}</p>
+                      {profile?.role === "admin" && (
                         <Badge variant="secondary" className="w-fit mt-1">
-                          {profile?.role || "user"}
+                          Admin
                         </Badge>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Link
-                        href="/profile"
-                        className="flex items-center space-x-3 rtl:space-x-reverse rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        <User className="h-4 w-4" />
-                        <span>{t.profile}</span>
-                      </Link>
-
-                      <Button variant="ghost" className="w-full justify-start" onClick={handleSignOut}>
-                        <LogOut className="mr-2 h-4 w-4" />
-                        <span>{t.logout}</span>
-                      </Button>
+                      )}
                     </div>
                   </div>
+                  <NavItems mobile />
                 </div>
               </SheetContent>
             </Sheet>

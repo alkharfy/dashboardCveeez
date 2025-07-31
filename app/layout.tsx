@@ -2,16 +2,16 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
+import { ThemeProvider } from "@/components/theme-provider"
 import { UserProvider } from "@/contexts/UserContext"
 import { LanguageProvider } from "@/contexts/LanguageContext"
-import { ThemeProvider } from "@/contexts/ThemeContext"
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from "@/components/ui/sonner"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "CV Management System",
-  description: "Bilingual CV management system with role-based access control",
+  description: "A comprehensive bilingual CV and task management system",
     generator: 'v0.dev'
 }
 

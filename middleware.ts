@@ -10,18 +10,22 @@ export async function middleware(req: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession()
 
-  // Protected routes
+  // Protected routes that require authentication
   const protectedRoutes = ["/dashboard", "/tasks", "/accounts", "/profile", "/all-tasks"]
-  const adminRoutes = ["/accounts", "/all-tasks"]
+  const adminRoutes = ["/all-tasks", "/accounts"]
+
   const isProtectedRoute = protectedRoutes.some((route) => req.nextUrl.pathname.startsWith(route))
+
   const isAdminRoute = adminRoutes.some((route) => req.nextUrl.pathname.startsWith(route))
 
-  // Redirect to login if not authenticated and trying to access protected route
+  // Redirect to login if accessing protected route without session
   if (isProtectedRoute && !session) {
-    return NextResponse.redirect(new URL("/login", req.url))
+    const redirectUrl = new URL("/login", req.url)
+    redirectUrl.searchParams.set("redirectTo", req.nextUrl.pathname)
+    return NextResponse.redirect(redirectUrl)
   }
 
-  // Check admin access
+  // Check admin access for admin routes
   if (isAdminRoute && session) {
     const { data: user } = await supabase.from("users").select("role").eq("id", session.user.id).single()
 
@@ -30,7 +34,7 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // Redirect to dashboard if authenticated and trying to access login
+  // Redirect to dashboard if accessing login while authenticated
   if (req.nextUrl.pathname === "/login" && session) {
     return NextResponse.redirect(new URL("/dashboard", req.url))
   }

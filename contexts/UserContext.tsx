@@ -1,12 +1,20 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useEffect, useState } from "react"
-import { createSupabaseClient } from "@/lib/supabase"
-import type { User } from "@supabase/supabase-js"
-import type { Database } from "@/lib/supabase"
 
-type UserProfile = Database["public"]["Tables"]["users"]["Row"]
+import { createContext, useContext, useEffect, useState } from "react"
+import type { User } from "@supabase/supabase-js"
+import { createSupabaseClient } from "@/lib/supabase"
+
+interface UserProfile {
+  id: string
+  email: string
+  full_name: string | null
+  avatar_url: string | null
+  role: "admin" | "user"
+  created_at: string
+  updated_at: string
+}
 
 interface UserContextType {
   user: User | null
@@ -47,31 +55,27 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const signOut = async () => {
-    await supabase.auth.signOut()
-    setUser(null)
-    setProfile(null)
-  }
-
   useEffect(() => {
-    // Get initial session
-    const getInitialSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      setUser(session?.user ?? null)
+    const getSession = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+        setUser(session?.user ?? null)
 
-      if (session?.user) {
-        const profileData = await fetchProfile(session.user.id)
-        setProfile(profileData)
+        if (session?.user) {
+          const profileData = await fetchProfile(session.user.id)
+          setProfile(profileData)
+        }
+      } catch (error) {
+        console.error("Error getting session:", error)
+      } finally {
+        setLoading(false)
       }
-
-      setLoading(false)
     }
 
-    getInitialSession()
+    getSession()
 
-    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -89,6 +93,16 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
     return () => subscription.unsubscribe()
   }, [supabase.auth])
+
+  const signOut = async () => {
+    try {
+      await supabase.auth.signOut()
+      setUser(null)
+      setProfile(null)
+    } catch (error) {
+      console.error("Error signing out:", error)
+    }
+  }
 
   return (
     <UserContext.Provider

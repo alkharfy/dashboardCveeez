@@ -1,29 +1,30 @@
 "use client"
 
-import { useLanguage } from "@/contexts/LanguageContext"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { AlertTriangle } from "lucide-react"
+import { AlertTriangle, ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import { useLanguage } from "@/contexts/LanguageContext"
 
 export default function UnauthorizedPage() {
-  const { t, language } = useLanguage()
+  const { t } = useLanguage()
 
   return (
-    <div
-      className={`min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4 ${language === "ar" ? "rtl" : "ltr"}`}
-    >
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
       <Card className="w-full max-w-md text-center">
-        <CardHeader>
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900">
-            <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
+        <CardHeader className="space-y-4">
+          <div className="mx-auto w-12 h-12 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
+            <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
           </div>
-          <CardTitle className="text-2xl font-bold text-red-600 dark:text-red-400">{t.accessDenied}</CardTitle>
-          <CardDescription>{t.unauthorizedMessage}</CardDescription>
+          <CardTitle className="text-2xl">{t.accessDenied}</CardTitle>
+          <CardDescription>{t.accessDeniedDescription}</CardDescription>
         </CardHeader>
         <CardContent>
           <Button asChild className="w-full">
-            <Link href="/dashboard">{t.backToDashboard}</Link>
+            <Link href="/dashboard">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              {t.backToDashboard}
+            </Link>
           </Button>
         </CardContent>
       </Card>
