@@ -80,10 +80,23 @@ class AirtableService {
     return response.records
   }
 
+  async createUser(fields: Record<string, any>): Promise<AirtableRecord> {
+    return this.request("/Users", {
+      method: "POST",
+      body: JSON.stringify({ fields }),
+    })
+  }
+
   async updateUser(id: string, fields: Record<string, any>): Promise<AirtableRecord> {
     return this.request(`/Users/${id}`, {
       method: "PATCH",
       body: JSON.stringify({ fields }),
+    })
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    await this.request(`/Users/${id}`, {
+      method: "DELETE",
     })
   }
 
@@ -112,6 +125,61 @@ class AirtableService {
       method: "DELETE",
     })
   }
+
+  // Dashboard statistics
+  async getDashboardStats(): Promise<any> {
+    const tasks = await this.getTasks()
+    const users = await this.getUsers()
+
+    const totalTasks = tasks.length
+    const completedTasks = tasks.filter((t) => t.fields.Status === "Completed").length
+    const pendingTasks = tasks.filter((t) => t.fields.Status === "Pending").length
+    const inProgressTasks = tasks.filter((t) => t.fields.Status === "In Progress").length
+    const overdueTasks = tasks.filter((t) => {
+      const dueDate = new Date(t.fields["Due Date"])
+      return dueDate < new Date() && t.fields.Status !== "Completed"
+    }).length
+
+    const ratings = tasks.map((t) => t.fields["Designer Rating"]).filter((r) => r && r > 0)
+    const avgRating = ratings.length > 0 ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length : 0
+
+    const thisMonth = new Date()
+    const thisMonthTasks = tasks.filter((t) => {
+      const createdDate = new Date(t.createdTime)
+      return createdDate.getMonth() === thisMonth.getMonth() && createdDate.getFullYear() === thisMonth.getFullYear()
+    }).length
+
+    const uniqueClients = new Set(tasks.map((t) => t.fields["Client Name"])).size
+
+    return {
+      totalTasks,
+      completedTasks,
+      pendingTasks,
+      inProgressTasks,
+      overdueTasks,
+      avgRating: Math.round(avgRating * 10) / 10,
+      thisMonthTasks,
+      totalClients: uniqueClients,
+      totalUsers: users.length,
+    }
+  }
+
+  // Recent activity
+  async getRecentActivity(limit = 10): Promise<any[]> {
+    const tasks = await this.getTasks()
+
+    return tasks
+      .sort((a, b) => new Date(b.createdTime).getTime() - new Date(a.createdTime).getTime())
+      .slice(0, limit)
+      .map((task) => ({
+        id: task.id,
+        type: "task_created",
+        clientName: task.fields["Client Name"],
+        status: task.fields.Status,
+        date: task.createdTime,
+        assignedDesigner: task.fields["Assigned Designer"],
+      }))
+  }
 }
 
 export const airtable = new AirtableService()
@@ -128,11 +196,23 @@ export const transformTaskRecord = (record: AirtableRecord) => ({
   experience: record.fields["Years of Experience"],
   skills: record.fields["Skills"],
   requiredServices: record.fields["Required Services"] || [],
+  service1: record.fields["Service 1"],
+  service2: record.fields["Service 2"],
+  service3: record.fields["Service 3"],
+  service4: record.fields["Service 4"],
+  service5: record.fields["Service 5"],
+  service6: record.fields["Service 6"],
   designerNotes: record.fields["Designer Notes"],
   reviewerNotes: record.fields["Reviewer Notes"],
   paymentStatus: record.fields["Payment Status"],
+  downPayment: record.fields["Down Payment"],
+  remainingAmount: record.fields["Remaining Amount"],
+  transferNumber: record.fields["Transfer Number"],
+  paymentMethod: record.fields["Payment Method"],
   status: record.fields["Status"],
+  priority: record.fields["Priority"],
   date: record.fields["Date"],
+  dueDate: record.fields["Due Date"],
   designerRating: record.fields["Designer Rating"] || 0,
   reviewerRating: record.fields["Reviewer Rating"] || 0,
   designerFeedback: record.fields["Designer Feedback"],
@@ -150,6 +230,9 @@ export const transformUserRecord = (record: AirtableRecord) => ({
   role: record.fields["Role"],
   status: record.fields["Status"],
   workplace: record.fields["Workplace"],
+  avatar: record.fields["Avatar"],
+  phone: record.fields["Phone"],
+  department: record.fields["Department"],
   createdTime: record.createdTime,
 })
 

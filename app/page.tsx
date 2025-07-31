@@ -1,6 +1,7 @@
 "use client"
 
-import { Layout } from "@/components/Layout"
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { useUser } from "@/contexts/UserContext"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -41,8 +42,25 @@ const mockRecentTasks = [
 ]
 
 export default function Dashboard() {
+  const router = useRouter()
   const { t, isRTL } = useLanguage()
-  const { user } = useUser()
+  const { user, isLoading } = useUser()
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (!user) {
+        router.push("/login")
+      }
+    }
+  }, [user, isLoading, router])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
 
   const StatCard = ({
     title,
@@ -80,75 +98,77 @@ export default function Dashboard() {
   }
 
   return (
-    <Layout>
-      <div className="space-y-6">
-        {/* Welcome Section */}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            {isRTL ? `مرحباً، ${user?.name}` : `Welcome, ${user?.name}`}
-          </h1>
-          <p className="text-gray-600 mt-2">
-            {t("dashboard")} - {new Date().toLocaleDateString(isRTL ? "ar-SA" : "en-US")}
-          </p>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard title={t("totalTasks")} value={mockStats.totalTasks} icon={CheckSquare} color="blue" />
-          <StatCard title={t("completedTasks")} value={mockStats.completedTasks} icon={CheckSquare} color="green" />
-          <StatCard title={t("pendingTasks")} value={mockStats.pendingTasks} icon={Clock} color="yellow" />
-          <StatCard title={t("avgRating")} value={`${mockStats.avgRating} ★`} icon={Star} color="purple" />
-        </div>
-
-        {/* Additional Stats for Admin/Manager */}
-        {(user?.role === "admin" || user?.role === "manager") && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <StatCard
-              title={isRTL ? "إجمالي العملاء" : "Total Clients"}
-              value={mockStats.totalClients}
-              icon={Users}
-              color="indigo"
-            />
-            <StatCard
-              title={isRTL ? "مهام هذا الشهر" : "Tasks This Month"}
-              value={mockStats.thisMonth}
-              icon={TrendingUp}
-              color="emerald"
-            />
+    <div>
+      {user && (
+        <div className="space-y-6">
+          {/* Welcome Section */}
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {isRTL ? `مرحباً، ${user?.name}` : `Welcome, ${user?.name}`}
+            </h1>
+            <p className="text-gray-600 mt-2">
+              {t("dashboard")} - {new Date().toLocaleDateString(isRTL ? "ar-SA" : "en-US")}
+            </p>
           </div>
-        )}
 
-        {/* Recent Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              {isRTL ? "النشاط الأخير" : "Recent Activity"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {mockRecentTasks.map((task) => (
-                <div
-                  key={task.id}
-                  className={`flex items-center justify-between p-3 bg-gray-50 rounded-lg ${
-                    isRTL ? "flex-row-reverse" : ""
-                  }`}
-                >
-                  <div className={isRTL ? "text-right" : "text-left"}>
-                    <div className="font-medium">{task.clientName}</div>
-                    <div className="text-sm text-gray-600">{t(task.service.toLowerCase().replace(" ", ""))}</div>
-                  </div>
-                  <div className={`text-sm ${isRTL ? "text-left" : "text-right"}`}>
-                    <div className={`font-medium ${getStatusColor(task.status)}`}>{t(task.status)}</div>
-                    <div className="text-gray-500">{task.date}</div>
-                  </div>
-                </div>
-              ))}
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StatCard title={t("totalTasks")} value={mockStats.totalTasks} icon={CheckSquare} color="blue" />
+            <StatCard title={t("completedTasks")} value={mockStats.completedTasks} icon={CheckSquare} color="green" />
+            <StatCard title={t("pendingTasks")} value={mockStats.pendingTasks} icon={Clock} color="yellow" />
+            <StatCard title={t("avgRating")} value={`${mockStats.avgRating} ★`} icon={Star} color="purple" />
+          </div>
+
+          {/* Additional Stats for Admin/Manager */}
+          {(user?.role === "admin" || user?.role === "manager") && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <StatCard
+                title={isRTL ? "إجمالي العملاء" : "Total Clients"}
+                value={mockStats.totalClients}
+                icon={Users}
+                color="indigo"
+              />
+              <StatCard
+                title={isRTL ? "مهام هذا الشهر" : "Tasks This Month"}
+                value={mockStats.thisMonth}
+                icon={TrendingUp}
+                color="emerald"
+              />
             </div>
-          </CardContent>
-        </Card>
-      </div>
-    </Layout>
+          )}
+
+          {/* Recent Activity */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                {isRTL ? "النشاط الأخير" : "Recent Activity"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {mockRecentTasks.map((task) => (
+                  <div
+                    key={task.id}
+                    className={`flex items-center justify-between p-3 bg-gray-50 rounded-lg ${
+                      isRTL ? "flex-row-reverse" : ""
+                    }`}
+                  >
+                    <div className={isRTL ? "text-right" : "text-left"}>
+                      <div className="font-medium">{task.clientName}</div>
+                      <div className="text-sm text-gray-600">{t(task.service.toLowerCase().replace(" ", ""))}</div>
+                    </div>
+                    <div className={`text-sm ${isRTL ? "text-left" : "text-right"}`}>
+                      <div className={`font-medium ${getStatusColor(task.status)}`}>{t(task.status)}</div>
+                      <div className="text-gray-500">{task.date}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </div>
   )
 }

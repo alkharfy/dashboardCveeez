@@ -1,52 +1,108 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useState } from "react"
+import { createContext, useContext, useEffect, useState } from "react"
+import { createSupabaseClient } from "@/lib/supabase"
+import type { User } from "@supabase/supabase-js"
+import type { Database } from "@/lib/supabase"
 
-export type UserRole = "admin" | "designer" | "reviewer" | "manager"
-
-interface User {
-  id: string
-  name: string
-  email: string
-  role: UserRole
-  status: string
-  workplace: string
-}
+type UserProfile = Database["public"]["Tables"]["users"]["Row"]
 
 interface UserContextType {
   user: User | null
-  setUser: (user: User | null) => void
-  hasPermission: (permission: string) => boolean
+  profile: UserProfile | null
+  loading: boolean
+  signOut: () => Promise<void>
+  refreshProfile: () => Promise<void>
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  // Mock user for demo - in real app this would come from authentication
-  const [user, setUser] = useState<User | null>({
-    id: "1",
-    name: "أحمد محمد",
-    email: "ahmed@company.com",
-    role: "admin",
-    status: "Available",
-    workplace: "الرياض",
-  })
+  const [user, setUser] = useState<User | null>(null)
+  const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [loading, setLoading] = useState(true)
+  const supabase = createSupabaseClient()
 
-  const hasPermission = (permission: string): boolean => {
-    if (!user) return false
+  const fetchProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase.from("users").select("*").eq("id", userId).single()
 
-    const permissions = {
-      admin: ["view_all", "edit_all", "delete_all", "manage_users", "view_accounts"],
-      manager: ["view_all"],
-      designer: ["view_own", "edit_own"],
-      reviewer: ["view_assigned", "edit_review"],
+      if (error) {
+        console.error("Error fetching profile:", error)
+        return null
+      }
+
+      return data
+    } catch (error) {
+      console.error("Error fetching profile:", error)
+      return null
     }
-
-    return permissions[user.role]?.includes(permission) || false
   }
 
-  return <UserContext.Provider value={{ user, setUser, hasPermission }}>{children}</UserContext.Provider>
+  const refreshProfile = async () => {
+    if (user) {
+      const profileData = await fetchProfile(user.id)
+      setProfile(profileData)
+    }
+  }
+
+  const signOut = async () => {
+    await supabase.auth.signOut()
+    setUser(null)
+    setProfile(null)
+  }
+
+  useEffect(() => {
+    // Get initial session
+    const getInitialSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      setUser(session?.user ?? null)
+
+      if (session?.user) {
+        const profileData = await fetchProfile(session.user.id)
+        setProfile(profileData)
+      }
+
+      setLoading(false)
+    }
+
+    getInitialSession()
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setUser(session?.user ?? null)
+
+      if (session?.user) {
+        const profileData = await fetchProfile(session.user.id)
+        setProfile(profileData)
+      } else {
+        setProfile(null)
+      }
+
+      setLoading(false)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [supabase.auth])
+
+  return (
+    <UserContext.Provider
+      value={{
+        user,
+        profile,
+        loading,
+        signOut,
+        refreshProfile,
+      }}
+    >
+      {children}
+    </UserContext.Provider>
+  )
 }
 
 export function useUser() {
